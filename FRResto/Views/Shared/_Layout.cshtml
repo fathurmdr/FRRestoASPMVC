@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FRResto</title>
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FRResto.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="sticky top-0 z-10">
+        <nav class="">
+            <div class="p-6 items-center flex justify-between w-full bg-white rounded-b-2xl shadow-md">
+                <a class="italic font-semibold text-2xl text-primary" asp-area="" asp-controller="Home" asp-action="Index">FR Resto</a>
+                <ul class="flex gap-4 text-2xl text-primary">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark relative" asp-area="" asp-controller="Promo" asp-action="Index">
+                            <i class="bi bi-tags"></i>
+                            <span class="absolute top-0 right-0 bg-red-700 rounded-full text-xs w-4 flex justify-center h-4 text-white translate-x-1/4">2</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark relative" asp-area="" asp-controller="Promo" asp-action="Index">
+                            <i class="bi bi-cart2"></i>
+                            <span class="absolute top-0 right-0 bg-red-700 rounded-full text-xs w-4 flex justify-center h-4 text-white translate-x-1/4">2</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <div>
+        <main role="main" class="w-full flex justify-center">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
