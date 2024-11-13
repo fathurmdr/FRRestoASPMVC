@@ -1,72 +1,321 @@
-﻿@model IEnumerable<Menu>
+﻿@using System.Globalization
+@model RestaurantBranch
 @{
     ViewData["Title"] = "Menus";
+    ViewData["Branch"] = Model.Name;
 }
 
 <div class="w-full max-w-xl">
     <h1 hidden>Menus</h1>
     <div class="p-4">
-        <img src="~/img/promo.png" class="w-full h-48 rounded-xl object-cover shadow-md" />
+        <img src="~/img/promo.webp" class="w-full h-48 rounded-xl object-cover shadow-md" />
     </div>
     <div class="border bg-white rounded-t-lg">
         <div class="p-6 flex gap-4 overflow-y-auto scrollbar-hide sticky top-0">
-            @foreach (var categoryGroup in Model.GroupBy(m => m.Category))
+            @foreach (var category in Model.Categories)
             {
                 <button
                     type="button"
                     class="px-4 py-2 text-nowrap font-medium border border-[#BDBDBD] rounded-full bg-[#F0F0F0]"
-                    onclick="scrollToCategory('@categoryGroup.Key')">
-                    @categoryGroup.Key
+                    onclick="scrollToCategory('@category.Name')">
+                    @category.Name
                 </button>
             }
         </div>
-        @foreach (var categoryGroup in Model.GroupBy(m => m.Category))
+        @foreach (var category in Model.Categories)
         {
             <div class="px-4 mb-8">
-                <h2 id="@categoryGroup.Key" class="mb-4 text-2xl font-semibold">@categoryGroup.Key</h2>
-                @foreach (var item in categoryGroup)
+                <h2 id="@category.Name" class="mb-4 text-2xl font-semibold">@category.Name</h2>
+                @foreach (var item in category.Menus)
                 {
                     <div class="mb-4 flex gap-4 relative h-40">
-                        <img src="~/img/food.png" class="rounded-xl w-40 h-40" />
+                        <img src="~/img/food.webp" class="rounded-xl w-40 h-40" />
                         <div class="py-3 w-full h-full flex flex-col justify-between">
                             <div>
-                                <h3 class="text-xl font-semibold">@item.Title</h3>
+                                <h3 class="text-xl font-semibold">@item.Name</h3>
                                 <p class="text-sm">@item.Description</p>
                             </div>
-                            <p class="font-semibold">Rp @item.Price</p>
+                            <p class="font-semibold">Rp @item.Price.ToString("N2", CultureInfo.CreateSpecificCulture("id-ID"))</p>
                         </div>
                         <div class="flex flex-col justify-end">
                             <button class="open-add-to-cart-modal bg-primary px-2 rounded-full"
-                                    data-title="@item.Title"
-                                    data-description="@item.Description"
-                                    data-price="@item.Price"
-                                    data-options='@Html.Raw(Json.Serialize(item.Options))'>
+                                    data-menu-id="@item.Id" >
                                 <i class="bi bi-plus text-3xl text-white"></i>
                             </button>
                         </div>
                     </div>
                 }
             </div>
-        }
-        <div id="add-to-cart-modal" class="fixed z-10 left-0 top-0 w-full h-full bg-black bg-opacity-50 flex justify-center hidden">
-            <div class="absolute bottom-0 bg-white w-full max-w-xl h-[90%] p-6 rounded-t-2xl shadow-md">
-                <button onclick="closeModal()" class="absolute top-4 right-4 text-lg">✕</button>
-                <div class="mb-6 flex gap-4 relative h-40">
-                    <img src="~/img/food.png" class="rounded-xl w-40 h-40" />
-                    <div class="py-2 w-full h-full flex flex-col justify-between">
-                        <div>
-                            <h3 id="add-to-cart-modal-title" class="text-xl font-semibold"></h3>
-                            <p id="add-to-cart-modal-description" class="text-sm"></p>
-                        </div>
-                        <p id="add-to-cart-modal-price" class="font-semibold text-end"></p>
-                    </div>
-                </div>
-                <form id="add-to-cart-form"></form>
+         }
+        <div id="modal-add-to-cart-overlay" class="fixed z-10 left-0 top-0 bg-black bg-opacity-50 w-full h-full flex justify-center">
+            <div id="modal-add-to-cart-container" class="absolute overflow-y-auto scrollbar-hide bottom-0 bg-white w-full h-[90%] max-w-xl rounded-t-2xl shadow-md">
+                <button onclick="hideModal('add-to-cart')" class="absolute z-10 top-4 right-4 text-lg p-2">✕</button>
+                <div id="add-to-cart-content" class="flex flex-col relative pt-6 h-full"></div>
+            </div>
+        </div>
+        <div id="modal-loading-overlay" class="fixed z-10 left-0 top-0 bg-black bg-opacity-50 w-full h-full flex justify-center">
+            <div id="modal-loading-container" class="absolute p-4 flex justify-center overflow-y-auto scrollbar-hide bottom-0 bg-white w-full max-w-xl rounded-t-2xl shadow-md">
+                <div class="w-8 h-8 border-2 border-t-primary border-transparent rounded-full animate-spin"></div>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script src="~/js/menus.js"></script>
+    @* <script src="~/js/menus.js"></script> *@
+    <script>
+        const states = {
+            menu: null,
+            addToCartInputs: {
+                menuId: null,
+                basePrice: 0,
+                quantity: 1,
+                additionals: [],
+                totalPrice: 0,
+            },
+            cartId: null,
+        };
+
+        states.cartId = localStorage.getItem("cartId")
+
+        async function showModal(modalName){
+            return new Promise((resolve)=>{
+                $(`#modal-${modalName}-overlay`).fadeIn();
+                $(`#modal-${modalName}-container`).animate({
+                    dummy: 1
+                },
+                    {
+                        duration: 500,
+                        step: function (now, fx) {
+                            const translateY = 100 * (1 - now);
+                            $(this).css("transform", `translateY(${translateY}%)`);
+                        },
+                        complete: function(){
+                            resolve()
+                        }
+                    }
+                );
+            })
+        };
+
+        async function hideModal(modalName, initial) {
+            if(initial){
+                $(`#modal-${modalName}-overlay`).hide();
+                $(`#modal-${modalName}-container`).css({ transform: "translateY(100%)" });
+                return;
+            }
+            
+            return new Promise((resolve)=>{
+                $(`#modal-${modalName}-container`).animate({
+                    dummy: 0
+                },
+                    {
+                        duration: 500,
+                        step: function (now, fx) {
+                            const translateY = 100 * (1 - now);
+                            $(this).css("transform", `translateY(${translateY}%)`);
+                        },
+                        complete: function(){
+                            resolve()
+                        }
+                    }
+                );
+                $(`#modal-${modalName}-overlay`).fadeOut();
+            })
+        };
+
+        async function getMenu(id) {
+            try {
+                const menuRes = await fetch(`/Menus/GetMenu/${id}`);
+                const menu = await menuRes.json();
+                return menu;
+            } catch (error) {
+                console.error(error);
+                return null;
+            }
+        }
+
+        function handleInputs() {
+            states.addToCartInputs.additionals = []
+
+            states.menu.additionals.forEach(({ name, isMultiple, options }) => {
+                $(`input[name="${name}"]:checked`).each(function() {
+                    const option = options.find((option) => option.value == $(this).val())
+                    states.addToCartInputs.additionals.push({
+                        name: name,
+                        optionId: option.id,
+                        price: option?.price ?? 0,
+                        isMultiple: isMultiple,
+                        value: $(this).val(),
+                    })
+                })
+                
+
+            })
+
+            let totalPrice = (states.addToCartInputs.basePrice + states.addToCartInputs.additionals.reduce((sum, { price }) => sum + price, 0)) * states.addToCartInputs.quantity;
+
+            const totalPriceEl = document.getElementById('totalPrice')
+
+            totalPriceEl.innerText = totalPrice.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })
+        };
+
+        function addQuantity() {
+            states.addToCartInputs.quantity = Math.max(1, states.addToCartInputs.quantity + 1)
+
+            $("#quantity").text(states.addToCartInputs.quantity)
+            handleInputs()
+        };
+
+        function subtractQuantity() {
+            states.addToCartInputs.quantity = Math.max(1, states.addToCartInputs.quantity - 1)
+
+            $("#quantity").text(states.addToCartInputs.quantity)
+            handleInputs()
+        };
+
+        async function addToCart() {
+            $(this).prop("disabled", true);
+
+
+            const spinner = `<div class="w-6 h-6 border-2 border-t-white border-transparent rounded-full animate-spin"></div>`;
+            $(this).html(spinner);
+
+            const payload = {
+                cartId: states.cartId,
+                menuId: states.addToCartInputs.menuId,
+                quantity: states.addToCartInputs.quantity,
+                additionals: states.addToCartInputs.additionals.map(({ optionId }) => ({ optionId }))
+            }
+
+            try {
+                const addToCartRes = await fetch("Menus/AddToCart", {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload),
+                })
+
+                if (addToCartRes.ok) {
+                    const cart = await addToCartRes.json();
+                    localStorage.setItem("cartId",cart.id);
+                    states.cartId = cart.id
+                    $("#cart-count").text(cart.items.reduce((sum, item)=> sum + item.quantity,0) || "").show();
+                } else {
+                    const { errorMsg } = await addToCartRes.json();
+                    alert(errorMsg)
+                    return
+                }
+                
+                hideModal("add-to-cart")
+            } catch (error) {
+                alert("Terjadi kesalahan, silahkan coba lagi.")
+                console.error(error)
+            } finally {
+                $(this).html("Add to cart");
+                $(this).prop("disabled", false);
+            }
+
+            
+        };
+
+
+        hideModal("loading", true);
+        hideModal("add-to-cart", true);
+
+        $(document).ready(function(){
+            $(".open-add-to-cart-modal").click(async function () {
+                states.addToCartInputs = {
+                    menuId: null,
+                    basePrice: 0,
+                    quantity: 1,
+                    additionals: [],
+                    totalPrice: 0,
+                };
+
+                await showModal("loading");
+                const menuId = this.getAttribute("data-menu-id")
+                const menu = await getMenu(menuId);
+                hideModal("loading");
+
+                if(!menu){
+                    alert("Terjadi kesalahan, silahkan coba lagi.")
+                    return
+                }
+
+
+                states.menu = menu;
+                states.addToCartInputs.menuId = menu.id;
+                states.addToCartInputs.basePrice = menu.price;
+                states.addToCartInputs.totalPrice = menu.price;
+
+                let contentHTML = `
+                    <div class="mb-6 flex gap-4 px-6">
+                        <img src="/img/food.webp" class="rounded-xl w-40 h-40" />
+                        <div class="py-2 w-full h-full flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xl font-semibold">${menu.name}</h3>
+                                <p class="text-sm">${menu.description}</p>
+                            </div>
+                            <p class="font-semibold text-end">${menu.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</p>
+                        </div>
+                    </div>
+                    <form id="add-to-cart-form" class="flex flex-col h-full">
+                        {inputs}
+                        <div class="h-full"></div>
+                        <div class="sticky left-0 bottom-0 w-full bg-white border-t p-4 drop-shadow-md">
+                            <div class="font-semibold flex justify-between items-center mb-3">
+                                <p>Quantity</p>
+                                <div class="flex gap-2 items-center">
+                                    <button type="button" onclick="subtractQuantity()" class="bg-primary px-2.5 rounded-full">
+                                        <i class="bi bi-dash text-base text-white"></i>
+                                    </button>
+                                        <span id="quantity">${states.addToCartInputs.quantity}</span>
+                                    <button type="button" onclick="addQuantity()" class="bg-primary px-2.5 rounded-full">
+                                        <i class="bi bi-plus text-base text-white"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="font-semibold flex justify-between items-center mb-3">
+                                <p>Total</p>
+                                <p id="totalPrice">${states.addToCartInputs.totalPrice.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</p>
+                            </div>
+                            <button id="add-to-cart-btn" type="button" class="bg-primary disabled:bg-opacity-80 py-2 w-full rounded-full text-white flex justify-center">Add to cart</button>
+                        </div>
+                    </form>
+                `
+
+                contentHTML = contentHTML.replace("{inputs}", menu.additionals.map(additional => {
+                    const additionalHTML = `
+                        <div class="mb-8 px-6">
+                            <p class="font-semibold text-lg">${additional.name}</p>
+                            ${additional.options.map(option => `
+                                <div class="py-2 items-center flex gap-2 border-b border-[#C2C2C2]">
+                                    <label class="flex w-full justify-between font-semibold text-sm">
+                                        <span>${option.value}</span>
+                                        <span>${option.price > 0 ? `+${option.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}` : 'Free'}</span>
+                                    </label>
+                                    <input type="${additional.isMultiple ? 'checkbox' : 'radio'}"
+                                            name="${additional.name}"
+                                            value="${option.value}"
+                                            class="w-5 h-5">
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+
+                    return additionalHTML
+                }).join(''));
+
+                $("#add-to-cart-content").html(contentHTML);
+
+                $("input").change(handleInputs);
+                $("#add-to-cart-btn").click(addToCart);
+
+                showModal("add-to-cart");
+            })
+        })
+    </script>
 }

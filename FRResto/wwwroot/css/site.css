@@ -31,3 +31,26 @@ html {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
 }
+
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0);
+    opacity: 0;
+    transition: all 0.5s ease;
+    pointer-events: none; /* prevent clicking on hidden modal */
+}
+
+.modal-container {
+    transform: translateY(100%);
+    transition: transform 0.5s ease;
+    height: 90%;
+}
+
+.modal-overlay.show {
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 1;
+    pointer-events: auto; /* enable clicking on visible modal */
+}
+
+.modal-container.show {
+    transform: translateY(0);
+}

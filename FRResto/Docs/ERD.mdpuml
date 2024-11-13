@@ -1,0 +1,231 @@
+﻿@startuml
+
+entity "Restaurant" {
+	+Id: Int
+	--
+	+Name: String
+	+Description: String?
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "User" {
+	+Id: Int
+	--
+	+Name: String
+	+Email: String
+	+Phone: String
+	+Password: String
+	+Role: String?
+	+RestaurantId: Int?
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "RestaurantBranch" {
+	+Id: Int
+	--
+	+RestaurantId: Int
+	--
+	+Name: String
+	+Description: String?
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "Promo" {
+	+Id: Int
+	--
+	+Code: String
+	+Description: String
+	+Type: String
+	+Discount: Decimal
+	+MaxDiscount: Decimal
+	+Status: String
+	+StartDate: DateTime
+	+EndDate: DateTime
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "Category" {
+	+Id: Int
+	--
+	+RestaurantBranchId: Int
+	--
+	+Name: String
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "CategoryMenu" {
+	+Id: Int
+	--
+	+CategoryId: Int
+	+MenuId: Int
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "Menu" {
+	+Id: Int
+	--
+	+RestaurantBranchId: Int
+	--
+	+Sku: String Unique
+	+Name: String
+	+Image: String
+	+Description: String?
+	+Price: Decimal
+	+Discount: Decimal
+	+Stock: Int
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "AdditionalMenu" {
+	+Id: Int
+	--
+	+MenuId: Int
+	--
+	+Name: String
+	+IsMultiple: Boolean
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "AdditionalOption" {
+	+Id: Int
+	--
+	+AdditionalMenuId: Int
+	--
+	+Sku: String Unique
+	+Value: String
+	+Price: Decimal
+	+Discount: Decimal
+	+Stock: Int
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "Cart" {
+	+Id: String UUID
+	--
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "CartItem" {
+	+Id: Int
+	--
+	+CartId: String UUID
+	--
+	+MenuSku: String
+	+Quantity: Int
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "CartItemAdditional" {
+	+Id: Int
+	--
+	+CartItemId: Int
+	--
+	+AdditionalSku: String
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+ 
+entity "Order" {
+	+Id: Int
+	--
+	+PromoId: Int?
+	--
+	+Number: String
+	+CustomerName: String
+	+CustomerPhone: String
+	+CustomerEmail: String?
+	+SubTotal: Decimal
+	+DiscountPromo: Decimal
+	+DiscountItem: Decimal
+	+Total: Decimal
+	+Status: String
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "OrderItem" {
+	+Id: Int
+	--
+	+OrderId: Int
+	--
+	+MenuSku: String
+	+Quantity: Integer
+	+Price: Decimal
+	+Discount: Decimal
+	+TotalPrice: Decimal
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+
+entity "OrderItemAdditional" {
+	+Id: Int
+	--
+	+OrderItemId: Int
+	--
+	+AdditionalSku: String
+	+Quantity: Integer
+	+Price: Decimal
+	+Discount: Decimal
+	+TotalPrice: Decimal
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "PaymentMethod" {
+	+Id: Int
+	--
+	+Name: String
+	+Code: String
+	+Type: String
+	+Account: String?
+	+Image: String?
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+entity "PaymentHistory" {
+	+Id: Int
+	--
+	+PaymentMethodId: Int
+	+OrderId: Int
+	--
+	+PaymentNumber: String
+	+Status: String
+	+Amount: Decimal
+	+CreatedAt: DateTime
+	+UpdatedAt: DateTime
+}
+
+Restaurant ||--o{ User
+Restaurant ||--o{ RestaurantBranch
+RestaurantBranch ||--o{ Menu
+RestaurantBranch ||--o{ Category
+Category ||--o{ CategoryMenu
+Menu ||--o{ CategoryMenu
+Menu ||--o{ AdditionalMenu
+AdditionalMenu ||--o{ AdditionalOption
+Menu ||--o{ CartItem
+AdditionalOption ||--o{ CartItemAdditional
+Cart ||--o{ CartItem
+CartItem ||--o{ CartItemAdditional
+Menu ||--o{ OrderItem
+AdditionalOption ||--o{ OrderItemAdditional
+Order ||--o{ OrderItem
+OrderItem ||--o{ OrderItemAdditional
+Promo ||--o{ Order
+Order ||--|| PaymentHistory
+PaymentMethod ||--|| PaymentHistory
+
+@enduml
