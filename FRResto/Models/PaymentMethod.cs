@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FRResto.Models
 {
@@ -6,6 +7,12 @@ namespace FRResto.Models
     {
         [Key]
         public int Id { get; set; }
+
+        [Required]
+        public int RestaurantBranchId { get; set; }
+
+        [ForeignKey("RestaurantBranchId")]
+        public RestaurantBranch RestaurantBranch { get; set; }
 
         [Required]
         [MaxLength(50)]

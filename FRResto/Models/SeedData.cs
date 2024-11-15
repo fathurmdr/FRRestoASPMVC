@@ -41,6 +41,7 @@ namespace FRResto.Models
                             new RestaurantBranch
                             {
                                 Name = "FR Resto",
+                                Slug = "FRResto",
                                 Description = "FR Restaurant",
 
                                 Menus = new List<Menu> {
@@ -186,19 +187,35 @@ namespace FRResto.Models
                                                 Name= "Most Popular",
                                             },
                                         },
+
+                                PaymentMethods = new List<PaymentMethod> {
+                                    new PaymentMethod
+                                        {
+                                            Name = "Pay at Cashier",
+                                            Code = "CASH",
+                                            Type = "Cash",
+                                            CreatedAt = DateTime.UtcNow,
+                                            UpdatedAt = DateTime.UtcNow,
+                                    }
+                                },
+
+                                Promos = new List<Promo> {
+                                    new Promo
+                                        {
+                                            Code = "FRDISC",
+                                            Status = "Active",
+                                            MaxDiscount = 50000,
+                                            Type = "Percent",
+                                            Discount= 10,
+                                            Description = "Discount 10% up to Rp 50.000,00",
+                                            StartDate = DateTime.UtcNow,
+                                            EndDate = DateTime.UtcNow.AddMonths(12),
+                                            CreatedAt = DateTime.UtcNow,
+                                            UpdatedAt = DateTime.UtcNow,
+                                    }
+                                },
                             }
                         }
-                    }
-                );
-
-                context.PaymentMethods.Add(
-                    new PaymentMethod
-                    {
-                        Name = "Cash",
-                        Code = "CASH",
-                        Type = "Cash",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
                     }
                 );
 

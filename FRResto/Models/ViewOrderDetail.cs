@@ -1,9 +1,10 @@
 ﻿namespace FRResto.Models
 {
-    public class ViewMenuDto
+    public class ViewOrderDetail
     {
         public RestaurantBranch RestaurantBranch { get; set; }
 
-        public List<Restaurant> restaurants { get; set; }
+        public Order Order { get; set; }
+
     }
 }

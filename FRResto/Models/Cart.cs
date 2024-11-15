@@ -8,10 +8,10 @@ namespace FRResto.Models
         [Key]
         public Guid Id { get; set; }
 
-        public int? RestaurantBranchId { get; set; }
+        public int RestaurantBranchId { get; set; }
 
         [ForeignKey("RestaurantBranchId")]
-        public RestaurantBranch? RestaurantBranch { get; set; }
+        public RestaurantBranch RestaurantBranch { get; set; }
 
         [Required]
         public DateTime CreatedAt { get; set; }

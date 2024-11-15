@@ -25,18 +25,11 @@ namespace FRResto.Models
         public string AdditionalValue { get; set; }
 
         [Required]
-        public int Quantity { get; set; }
-
-        [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Discount { get; set; }
-
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal TotalPrice { get; set; }
 
         [Required]
         public DateTime CreatedAt { get; set; }

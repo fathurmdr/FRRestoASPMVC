@@ -9,6 +9,12 @@ namespace FRResto.Models
         public int Id { get; set; }
 
         [Required]
+        public int RestaurantBranchId { get; set; }
+
+        [ForeignKey("RestaurantBranchId")]
+        public RestaurantBranch RestaurantBranch { get; set; }
+
+        [Required]
         [MaxLength(20)]
         public string Code { get; set; }
 

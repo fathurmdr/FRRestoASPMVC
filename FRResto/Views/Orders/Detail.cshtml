@@ -1,0 +1,57 @@
+﻿@using System.Globalization
+@model ViewOrderDetail
+@{
+    ViewData["Title"] = "Order - " + Model.Order.Number;
+    ViewData["BranchName"] = Model.RestaurantBranch.Name;
+    ViewData["BranchSlug"] = Model.RestaurantBranch.Slug;
+}
+
+<div class="w-full max-w-xl">
+    <div class="p-6 bg-white rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-4">Order Details</h1>
+
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold">Customer Information</h2>
+            <p><span class="font-semibold">Order Number:</span> @Model.Order.Number</p>
+            <p><span class="font-semibold">Customer Name:</span> @Model.Order.CustomerName</p>
+            <p><span class="font-semibold">Phone:</span> @Model.Order.CustomerPhone</p>
+        </div>
+
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold">Items</h2>
+            <ul class="space-y-4">
+                @foreach (var item in Model.Order.Items)
+                {
+                    <li class="p-4 bg-gray-50 rounded-md">
+                        <p class="font-bold">@item.MenuName</p>
+                        <div class="flex items-center space-x-4">
+                            <img src="@item.MenuImage" alt="@item.MenuName" class="w-16 h-16 object-cover rounded" />
+                            <div>
+                                @foreach (var additional in item.Additionals)
+                                {
+                                    <p><span class="font-semibold">@additional.AdditionalName •</span> <span>@additional.AdditionalValue</span></p>
+                                }
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm">@item.MenuDescription</p>
+                        <div class="flex justify-between font-semibold">
+                            <p>@(item.Quantity)x</p>
+                            <p>Rp @((item.Price - item.Discount + item.Additionals.Sum(a => a.Price - a.Discount)).ToString("N2", CultureInfo.CreateSpecificCulture("id-ID")))</p>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold">Status</h2>
+            <p>@Model.Order.Status</p>
+        </div>
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold">Summary</h2>
+            <p><span class="font-semibold">Subtotal: </span>Rp @Model.Order.Subtotal.ToString("N2", CultureInfo.CreateSpecificCulture("id-ID"))</p>
+            <p><span class="font-semibold">Discount (Items): </span>Rp @Model.Order.DiscountItems.ToString("N2", CultureInfo.CreateSpecificCulture("id-ID"))</p>
+            <p><span class="font-semibold">Discount (Promo): </span>Rp @Model.Order.DiscountPromo.ToString("N2", CultureInfo.CreateSpecificCulture("id-ID"))</p>
+            <p><span class="font-semibold">Total: </span>Rp @Model.Order.Total.ToString("N2", CultureInfo.CreateSpecificCulture("id-ID"))</p>
+        </div>
+    </div>
+</div>

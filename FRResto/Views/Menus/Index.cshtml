@@ -2,7 +2,8 @@
 @model RestaurantBranch
 @{
     ViewData["Title"] = "Menus";
-    ViewData["Branch"] = Model.Name;
+    ViewData["BranchName"] = Model.Name;
+    ViewData["BranchSlug"] = Model.Slug;
 }
 
 <div class="w-full max-w-xl">
@@ -47,13 +48,63 @@
                 }
             </div>
          }
-        <div id="modal-add-to-cart-overlay" class="fixed z-10 left-0 top-0 bg-black bg-opacity-50 w-full h-full flex justify-center">
+        <div id="modal-add-to-cart-overlay" class="hidden fixed z-10 left-0 top-0 bg-black bg-opacity-50 w-full h-full justify-center">
             <div id="modal-add-to-cart-container" class="absolute overflow-y-auto scrollbar-hide bottom-0 bg-white w-full h-[90%] max-w-xl rounded-t-2xl shadow-md">
                 <button onclick="hideModal('add-to-cart')" class="absolute z-10 top-4 right-4 text-lg p-2">✕</button>
                 <div id="add-to-cart-content" class="flex flex-col relative pt-6 h-full"></div>
             </div>
         </div>
-        <div id="modal-loading-overlay" class="fixed z-10 left-0 top-0 bg-black bg-opacity-50 w-full h-full flex justify-center">
+        <div id="modal-cart-overlay" class="hidden fixed z-10 left-0 top-0 bg-black bg-opacity-50 w-full h-full justify-center">
+            <div id="modal-cart-container" class="absolute overflow-y-auto scrollbar-hide bottom-0 bg-white w-full h-[90%] max-w-xl rounded-t-2xl shadow-md">
+                <button onclick="hideModal('cart')" class="absolute z-10 top-4 right-4 text-lg p-2">✕</button>
+                <form class="h-full">
+                    <div id="cart-content" class="flex flex-col relative pt-6 h-full">
+                        <div class="mb-6 px-6">
+                            <label for="tableNumber" class="block text-lg font-semibold mb-2">Table Number</label>
+                            <div class="flex gap-3 items-center mb-6">
+                                <input id="tableNumber" name="tableNumber" type="text" maxlength="3" class="text-center px-3 w-14 border border-primary rounded-full focus:outline-none" />
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 20L7.5 16.25C7.65 15.8667 7.89167 15.5623 8.225 15.337C8.55833 15.1117 8.93333 14.9993 9.35 15H11V10.975C8.45 10.8917 6.31233 10.5167 4.587 9.85C2.86167 9.18333 1.99933 8.4 2 7.5C2 6.53333 2.975 5.70833 4.925 5.025C6.875 4.34167 9.23333 4 12 4C14.7833 4 17.146 4.34167 19.088 5.025C21.03 5.70833 22.0007 6.53333 22 7.5C22 8.4 21.1373 9.18333 19.412 9.85C17.6867 10.5167 15.5493 10.8917 13 10.975V15H14.65C15.05 15 15.421 15.1127 15.763 15.338C16.105 15.5633 16.3507 15.8673 16.5 16.25L18 20H16L14.8 17H9.2L8 20H6Z" fill="#601201" />
+                                </svg>
+                            </div>
+                            <label for="fullName" class="block font-medium mb-2">Full Name</label>
+                            <div class="flex gap-3 items-center mb-4">
+                                <input id="fullName" name="fullName" type="text" class="px-3 w-full border border-primary rounded-full focus:outline-none" />
+                            </div>
+                            <label for="phoneNumber" class="block font-medium mb-2">Phone Number</label>
+                            <div class="flex gap-3 items-center mb-4">
+                                <input id="phoneNumber" name="phoneNumber" type="text" class="px-3 w-full border border-primary rounded-full focus:outline-none" />
+                            </div>
+                        </div>
+                        <div id="cart-items" class="mb-6 px-6"></div>
+                        <div class="mb-6 px-6">
+                            <p class="font-semibold">Payment Method</p>
+                            <div id="payment-methods"></div>
+                        </div>
+                        <div class="h-full"></div>
+                        <div class="sticky left-0 bottom-0 w-full bg-white border-t p-4 shadow-[0px_-3px_8px_rgba(0,0,0,0.05)]">
+                            <p class="font-semibold text-lg mb-3">
+                                Order Summary
+                            </p>
+                            <div class="font-semibold flex justify-between items-center mb-3">
+                                <p>Subtotal</p>
+                                <p id="subtotal">Rp 0,00</p>
+                            </div>
+                            <div class="font-semibold flex justify-between items-center mb-3 pb-2 border-b border-[#BDBDBD]">
+                                <p>Total Discount</p>
+                                <p id="total-discount">Rp 0,00</p>
+                            </div>
+                            <div class="font-semibold flex justify-between items-center mb-5">
+                                <p>Total Payment</p>
+                                <p id="total-payment">Rp 0,00</p>
+                            </div>
+                            <button id="create-order-btn" type="button" class="bg-primary disabled:bg-opacity-80 py-2 w-full rounded-full text-white flex justify-center">Proceed Order</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="modal-loading-overlay" class="hidden fixed z-10 left-0 top-0 bg-black bg-opacity-50 w-full h-full justify-center">
             <div id="modal-loading-container" class="absolute p-4 flex justify-center overflow-y-auto scrollbar-hide bottom-0 bg-white w-full max-w-xl rounded-t-2xl shadow-md">
                 <div class="w-8 h-8 border-2 border-t-primary border-transparent rounded-full animate-spin"></div>
             </div>
@@ -74,13 +125,25 @@
                 totalPrice: 0,
             },
             cartId: null,
+            createOrderInputs: {
+                tableNumber: "",
+                fullName: "",
+                phoneNumber: "",
+                voucher: "",
+                subtotal: 0,
+                promoDiscount: 0,
+                totalDiscount: 0,
+                totalPayment: 0,
+                paymentMethodCode: "",
+            },
+            paymentMethods: [],
         };
 
         states.cartId = localStorage.getItem("cartId")
 
         async function showModal(modalName){
             return new Promise((resolve)=>{
-                $(`#modal-${modalName}-overlay`).fadeIn();
+                $(`#modal-${modalName}-overlay`).css("display", "flex").hide().fadeIn();
                 $(`#modal-${modalName}-container`).animate({
                     dummy: 1
                 },
@@ -98,13 +161,7 @@
             })
         };
 
-        async function hideModal(modalName, initial) {
-            if(initial){
-                $(`#modal-${modalName}-overlay`).hide();
-                $(`#modal-${modalName}-container`).css({ transform: "translateY(100%)" });
-                return;
-            }
-            
+        async function hideModal(modalName) {
             return new Promise((resolve)=>{
                 $(`#modal-${modalName}-container`).animate({
                     dummy: 0
@@ -126,16 +183,19 @@
 
         async function getMenu(id) {
             try {
-                const menuRes = await fetch(`/Menus/GetMenu/${id}`);
-                const menu = await menuRes.json();
-                return menu;
+                const menuRes = await fetch(`/@Model.Slug/Menus/GetMenu/${id}`);
+                if(menuRes.ok){
+                    const menu = await menuRes.json();
+                    return menu;
+                }
+                return null;
             } catch (error) {
                 console.error(error);
                 return null;
             }
         }
 
-        function handleInputs() {
+        function handleAddToCartInputs() {
             states.addToCartInputs.additionals = []
 
             states.menu.additionals.forEach(({ name, isMultiple, options }) => {
@@ -155,24 +215,34 @@
 
             let totalPrice = (states.addToCartInputs.basePrice + states.addToCartInputs.additionals.reduce((sum, { price }) => sum + price, 0)) * states.addToCartInputs.quantity;
 
-            const totalPriceEl = document.getElementById('totalPrice')
-
-            totalPriceEl.innerText = totalPrice.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })
+            $("#totalPrice").text(totalPrice.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }))
         };
 
         function addQuantity() {
             states.addToCartInputs.quantity = Math.max(1, states.addToCartInputs.quantity + 1)
 
             $("#quantity").text(states.addToCartInputs.quantity)
-            handleInputs()
+            handleAddToCartInputs()
         };
 
         function subtractQuantity() {
             states.addToCartInputs.quantity = Math.max(1, states.addToCartInputs.quantity - 1)
 
             $("#quantity").text(states.addToCartInputs.quantity)
-            handleInputs()
+            handleAddToCartInputs()
         };
+
+        function updateCartCount(cart) {
+            const cartCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0
+            if (cartCount > 0) {
+                $("#cart-count").text(cartCount).show();
+                $("#cart-btn").prop("disabled", false)
+            } else {
+                $("#cart-count").text(cartCount).hide();
+                $("#cart-btn").prop("disabled", true)
+                hideModal("cart")
+            }
+        }
 
         async function addToCart() {
             $(this).prop("disabled", true);
@@ -189,7 +259,7 @@
             }
 
             try {
-                const addToCartRes = await fetch("Menus/AddToCart", {
+                const addToCartRes = await fetch("/@Model.Slug/Menus/AddToCart", {
                     method: "POST",
                     headers: {
                         'Accept': 'application/json',
@@ -202,7 +272,7 @@
                     const cart = await addToCartRes.json();
                     localStorage.setItem("cartId",cart.id);
                     states.cartId = cart.id
-                    $("#cart-count").text(cart.items.reduce((sum, item)=> sum + item.quantity,0) || "").show();
+                    updateCartCount(cart);
                 } else {
                     const { errorMsg } = await addToCartRes.json();
                     alert(errorMsg)
@@ -221,11 +291,162 @@
             
         };
 
+        async function createOrder() {
+            $(this).prop("disabled", true);
 
-        hideModal("loading", true);
-        hideModal("add-to-cart", true);
+
+            const spinner = `<div class="w-6 h-6 border-2 border-t-white border-transparent rounded-full animate-spin"></div>`;
+            $(this).html(spinner);
+
+            const payload = {
+                tableNumber: $("#tableNumber")?.val() || null,
+                fullName: $("#fullName")?.val() || null,
+                phoneNumber: $("#phoneNumber")?.val() || null,
+                cartId: states.cartId || null,
+                promoCode: $("#promoCode")?.val() || null,
+                paymentMethodCode: $(`input[name="paymentMethodCode"]:checked`)?.val() || null,
+            }
+
+            try {
+                const createOrderRes = await fetch("/@Model.Slug/Menus/CreateOrder", {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload),
+                })
+
+                if (createOrderRes.ok) {
+                    const { orderNumber } = await createOrderRes.json();
+                    window.location.href = `/@Model.Slug/Orders/Detail/${orderNumber}`
+                } else {
+                    const { errorMsg } = await createOrderRes.json();
+                    alert(errorMsg)
+                    return
+                }
+
+                hideModal("cart")
+            } catch (error) {
+                alert("Terjadi kesalahan, silahkan coba lagi.")
+                console.error(error)
+            } finally {
+                $(this).html("Add to cart");
+                $(this).prop("disabled", false);
+            }
+
+
+        };
+
+        async function getCart(id) {
+            try {
+                const cartRes = await fetch(`/@Model.Slug/Menus/GetCart/${id}`);
+                if (cartRes.ok) {
+                    const cart = await cartRes.json();
+                    updateCartCount(cart);
+                    return cart;
+                }
+                return null;
+            } catch (error) {
+                console.error(error);
+                return null;
+            }
+        }
+
+        async function getPaymentMethods() {
+            try {
+                const paymentMethodsRes = await fetch(`/@Model.Slug/Menus/GetPaymentMethods`);
+                if (paymentMethodsRes.ok) {
+                    const paymentMethods = await paymentMethodsRes.json();
+                    return paymentMethods;
+                }
+                return [];
+            } catch (error) {
+                console.error(error);
+                return [];
+            }
+        }
+
+        async function addQuantityCartItem(id, quantity) {
+            try {
+                const res = await fetch(`/@Model.Slug/Menus/AddQuantityCartItem/${id}?Quantity=${quantity}`,{
+                    method: "PATCH",
+                });
+                if (res.ok) {
+                    const cart = await res.json();
+                    updateCartCount(cart);
+                    states.createOrderInputs.subtotal = cart.items.reduce((sum, item) =>
+                        sum + item.quantity * (item.menu.price + item.additionals.reduce((additionalSum, additional) => additionalSum + additional.option.price, 0))
+                        , 0);
+
+                    states.createOrderInputs.totalDiscount = cart.items.reduce((sum, item) =>
+                        sum + item.quantity * (item.menu.discount + item.additionals.reduce((additionalSum, additional) => additionalSum + additional.option.discount, 0))
+                        , 0);
+
+                    states.createOrderInputs.totalPayment = states.createOrderInputs.subtotal - states.createOrderInputs.totalDiscount;
+
+                    $("#subtotal").html(states.createOrderInputs.subtotal.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }));
+                    $("#total-discount").html(states.createOrderInputs.totalDiscount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }));
+                    $("#total-payment").html(states.createOrderInputs.totalPayment.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }));
+
+                    const cartItemsHTML = cart.items.map(item => {
+                        const price = item.menu.price + item.additionals.reduce((additionalSum, additional) => additionalSum + additional.option.price, 0);
+                        const discount = item.menu.discount + item.additionals.reduce((additionalSum, additional) => additionalSum + additional.option.discount, 0);
+
+                        const itemHTML = `
+                                                <div class="mb-4 pb-2 border-b border-[#C2C2C2]">
+                                                    <p class="font-semibold text-lg mb-2">${item.menu.name}</p>
+                                                    <div class="flex gap-2">
+                                                        <img src="${item.menu.image}" class="w-24 h-24 rounded-md" />
+                                                        <div class="text-sm">
+                                                            ${item.additionals.map(additional => `
+                                                                 <p><span class="font-semibold">${additional.option.additional.name} •</span> <span>${additional.option.value}</span></p>
+                                                            `).join('')}
+                                                        </div>
+                                                    </div>
+                                                    <div class="font-semibold flex justify-between items-center">
+                                                        <p>${price - discount}</p>
+                                                        <div class="flex gap-2 items-center">
+                                                            <button id="cart-item-subtract-quantity-${item.id}" type="button" class="bg-primary px-2.5 rounded-full">
+                                                                <i class="bi bi-dash text-base text-white"></i>
+                                                            </button>
+                                                                <span id="cart-item-quantity-${item.id}">${item.quantity}</span>
+                                                            <button id="cart-item-add-quantity-${item.id}" type="button" class="bg-primary px-2.5 rounded-full">
+                                                                <i class="bi bi-plus text-base text-white"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `;
+
+                        return itemHTML
+                    }).join('');
+
+                    $("#cart-items").html(cartItemsHTML);
+
+                    cart.items.forEach((item) => {
+                        $(`#cart-item-subtract-quantity-${item.id}`).click(async function () {
+                            $(this).prop("disabled", true);
+                            await addQuantityCartItem(item.id, -1)
+                            $(this).prop("disabled", false);
+                        })
+                        $(`#cart-item-add-quantity-${item.id}`).click(async function () {
+                            $(this).prop("disabled", true);
+                            await addQuantityCartItem(item.id, 1)
+                            $(this).prop("disabled", false);
+                        })
+                    });
+
+                }
+            } catch (error) {
+                alert("Terjadi kesalahan!")
+                console.error(error);
+            }
+        }
 
         $(document).ready(function(){
+            $("#cart-btn").show();
+
             $(".open-add-to-cart-modal").click(async function () {
                 states.addToCartInputs = {
                     menuId: null,
@@ -253,7 +474,7 @@
 
                 let contentHTML = `
                     <div class="mb-6 flex gap-4 px-6">
-                        <img src="/img/food.webp" class="rounded-xl w-40 h-40" />
+                        <img src="${menu.image}" class="rounded-xl w-40 h-40" />
                         <div class="py-2 w-full h-full flex flex-col justify-between">
                             <div>
                                 <h3 class="text-xl font-semibold">${menu.name}</h3>
@@ -262,10 +483,10 @@
                             <p class="font-semibold text-end">${menu.price.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</p>
                         </div>
                     </div>
-                    <form id="add-to-cart-form" class="flex flex-col h-full">
+                    <div class="flex flex-col h-full">
                         {inputs}
                         <div class="h-full"></div>
-                        <div class="sticky left-0 bottom-0 w-full bg-white border-t p-4 drop-shadow-md">
+                            <div class="sticky left-0 bottom-0 w-full bg-white border-t p-4 shadow-[0px_-3px_8px_rgba(0,0,0,0.05)]">
                             <div class="font-semibold flex justify-between items-center mb-3">
                                 <p>Quantity</p>
                                 <div class="flex gap-2 items-center">
@@ -284,7 +505,7 @@
                             </div>
                             <button id="add-to-cart-btn" type="button" class="bg-primary disabled:bg-opacity-80 py-2 w-full rounded-full text-white flex justify-center">Add to cart</button>
                         </div>
-                    </form>
+                    </div>
                 `
 
                 contentHTML = contentHTML.replace("{inputs}", menu.additionals.map(additional => {
@@ -311,11 +532,126 @@
 
                 $("#add-to-cart-content").html(contentHTML);
 
-                $("input").change(handleInputs);
+                $("input").change(handleAddToCartInputs);
                 $("#add-to-cart-btn").click(addToCart);
 
                 showModal("add-to-cart");
             })
+
+            $("#modal-add-to-cart-overlay").click(function (event) {
+                if (!$(event.target).closest("#modal-add-to-cart-container").length) {
+                    hideModal('add-to-cart');
+                }
+            });
+
+            $("#cart-btn").click(async function () {
+                states.createOrderInputs = {
+                    tableNumber: $.getQueryParam('tableNumber'),
+                    fullName: "",
+                    phoneNumber: "",
+                    cart: null,
+                    voucher: "",
+                    subtotal: 0,
+                    totalDiscount: 0,
+                    totalPayment: 0,
+                    paymentMethodCode: "",
+                };
+
+                await showModal("loading");
+
+                const cart = await getCart(states.cartId);
+                hideModal("loading");
+
+                if (!cart) {
+                    alert("Keranjang tidak ditemukan! Silahkan tambahan menu terlebih dahulu")
+                    return
+                }
+
+                $("#tableNumber").val(states.createOrderInputs.tableNumber);
+
+                states.createOrderInputs.subtotal = cart.items.reduce((sum, item) =>
+                    sum + item.quantity * (item.menu.price + item.additionals.reduce((additionalSum, additional) => additionalSum + additional.option.price, 0))
+                    , 0);
+
+                states.createOrderInputs.totalDiscount = cart.items.reduce((sum, item) =>
+                    sum + item.quantity * (item.menu.discount + item.additionals.reduce((additionalSum, additional) => additionalSum + additional.option.discount, 0))
+                    , 0);
+
+                states.createOrderInputs.totalPayment = states.createOrderInputs.subtotal - states.createOrderInputs.totalDiscount;
+
+                $("#subtotal").html(states.createOrderInputs.subtotal.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }));
+                $("#total-discount").html(states.createOrderInputs.totalDiscount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }));
+                $("#total-payment").html(states.createOrderInputs.totalPayment.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }));
+
+                states.paymentMethods = await getPaymentMethods()
+
+                const paymentMethodsHTML = states.paymentMethods.map((item)=>`
+                    <div class="p-2 flex justify-between items-center border-b border-[#BDBDBD]">
+                        ${item.image ? `<image src="${item.image}" class="w-16 h-10 object-contain"/>` : `<p class="h-10 font-medium flex items-center">${item.name}</p>`}
+                        <input type="radio" name="paymentMethodCode" value="${item.code}" class="w-5 h-5"/>
+                    </div>
+                `).join('');
+
+                $("#payment-methods").html(paymentMethodsHTML);
+
+                const cartItemsHTML = cart.items.map(item => {
+                    const price = item.menu.price + item.additionals.reduce((additionalSum, additional) => additionalSum + additional.option.price, 0);
+                    const discount = item.menu.discount + item.additionals.reduce((additionalSum, additional) => additionalSum + additional.option.discount, 0);
+
+                    const itemHTML = `
+                                        <div class="mb-4 pb-2 border-b border-[#C2C2C2]">
+                                            <p class="font-semibold text-lg mb-2">${item.menu.name}</p>
+                                            <div class="flex gap-2">
+                                                <img src="${item.menu.image}" class="w-24 h-24 rounded-md" />
+                                                <div class="text-sm">
+                                                    ${item.additionals.map(additional => `
+                                                         <p><span class="font-semibold">${additional.option.additional.name} •</span> <span>${additional.option.value}</span></p>
+                                                    `).join('')}
+                                                </div>
+                                            </div>
+                                            <div class="font-semibold flex justify-between items-center">
+                                                <p>${price - discount}</p>
+                                                <div class="flex gap-2 items-center">
+                                                    <button id="cart-item-subtract-quantity-${item.id}" type="button" class="bg-primary px-2.5 rounded-full">
+                                                        <i class="bi bi-dash text-base text-white"></i>
+                                                    </button>
+                                                        <span id="cart-item-quantity-${item.id}">${item.quantity}</span>
+                                                    <button id="cart-item-add-quantity-${item.id}" type="button" class="bg-primary px-2.5 rounded-full">
+                                                        <i class="bi bi-plus text-base text-white"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+
+                    return itemHTML
+                }).join('');
+
+                $("#cart-items").html(cartItemsHTML);
+                
+                cart.items.forEach((item) => {
+                    $(`#cart-item-subtract-quantity-${item.id}`).click(async function () {
+                        $(this).prop("disabled", true);
+                        await addQuantityCartItem(item.id, -1)
+                        $(this).prop("disabled", false);
+                    })
+                    $(`#cart-item-add-quantity-${item.id}`).click(async function () {
+                        $(this).prop("disabled", true);
+                        await addQuantityCartItem(item.id, 1)
+                        $(this).prop("disabled", false);
+                    })
+                });
+
+                showModal("cart");
+            })
+
+            $("#modal-cart-overlay").click(function (event) {
+                if (!$(event.target).closest("#modal-cart-container").length) {
+                    hideModal('cart');
+                }
+            });
+
+            $("#create-order-btn").click(createOrder);
         })
     </script>
 }

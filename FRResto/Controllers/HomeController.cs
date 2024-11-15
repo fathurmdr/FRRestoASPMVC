@@ -20,7 +20,7 @@ namespace FRResto.Controllers
 
         public async Task<IActionResult> Index(string branch)
         {
-            var restaurantBranch = await _context.RestaurantBranches.FirstOrDefaultAsync(rb => rb.Name == branch);
+            var restaurantBranch = await _context.RestaurantBranches.FirstOrDefaultAsync(rb => rb.Name == branch || rb.Slug == branch);
             if (restaurantBranch == null)
             {
                 return NotFound();

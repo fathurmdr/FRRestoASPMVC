@@ -121,7 +121,7 @@ namespace FRResto.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("RestaurantBranchId")
+                    b.Property<int>("RestaurantBranchId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -282,9 +282,6 @@ namespace FRResto.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CustomerEmail")
-                        .HasColumnType("text");
-
                     b.Property<string>("CustomerName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -294,7 +291,7 @@ namespace FRResto.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("DiscountItem")
+                    b.Property<decimal>("DiscountItems")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("DiscountPromo")
@@ -308,7 +305,7 @@ namespace FRResto.Migrations
                     b.Property<int?>("PromoId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("RestaurantBranchId")
+                    b.Property<int>("RestaurantBranchId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Status")
@@ -316,8 +313,13 @@ namespace FRResto.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<decimal>("SubTotal")
+                    b.Property<decimal>("Subtotal")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TableNumber")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");
@@ -377,9 +379,6 @@ namespace FRResto.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -425,12 +424,6 @@ namespace FRResto.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -508,6 +501,9 @@ namespace FRResto.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<int>("RestaurantBranchId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(25)
@@ -517,6 +513,8 @@ namespace FRResto.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RestaurantBranchId");
 
                     b.ToTable("PaymentMethods");
                 });
@@ -550,6 +548,9 @@ namespace FRResto.Migrations
                     b.Property<decimal>("MaxDiscount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("RestaurantBranchId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -567,6 +568,8 @@ namespace FRResto.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RestaurantBranchId");
 
                     b.ToTable("Promos");
                 });
@@ -619,6 +622,10 @@ namespace FRResto.Migrations
 
                     b.Property<int>("RestaurantId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Slug")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -715,7 +722,9 @@ namespace FRResto.Migrations
                 {
                     b.HasOne("FRResto.Models.RestaurantBranch", "RestaurantBranch")
                         .WithMany()
-                        .HasForeignKey("RestaurantBranchId");
+                        .HasForeignKey("RestaurantBranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("RestaurantBranch");
                 });
@@ -788,7 +797,9 @@ namespace FRResto.Migrations
 
                     b.HasOne("FRResto.Models.RestaurantBranch", "RestaurantBranch")
                         .WithMany()
-                        .HasForeignKey("RestaurantBranchId");
+                        .HasForeignKey("RestaurantBranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Promo");
 
@@ -838,6 +849,28 @@ namespace FRResto.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("PaymentMethod");
+                });
+
+            modelBuilder.Entity("FRResto.Models.PaymentMethod", b =>
+                {
+                    b.HasOne("FRResto.Models.RestaurantBranch", "RestaurantBranch")
+                        .WithMany()
+                        .HasForeignKey("RestaurantBranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RestaurantBranch");
+                });
+
+            modelBuilder.Entity("FRResto.Models.Promo", b =>
+                {
+                    b.HasOne("FRResto.Models.RestaurantBranch", "RestaurantBranch")
+                        .WithMany()
+                        .HasForeignKey("RestaurantBranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RestaurantBranch");
                 });
 
             modelBuilder.Entity("FRResto.Models.RestaurantBranch", b =>

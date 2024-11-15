@@ -13,16 +13,18 @@
     <header class="sticky top-0 z-10">
         <nav class="">
             <div class="p-6 items-center flex justify-between w-full bg-white rounded-b-2xl shadow-md">
-                <a class="italic font-semibold text-2xl text-primary" asp-area="" asp-controller="Home" asp-action="Index" asp-route-branch="@ViewData["Branch"]">@ViewData["Branch"]</a>
+                <a class="italic font-semibold text-2xl text-primary" asp-area="" asp-controller="Home" asp-action="Index" asp-route-branch="@ViewData["BranchSlug"]">@ViewData["BranchName"]</a>
                 <ul class="flex gap-4 text-2xl text-primary">
+                    @*
                     <li class="nav-item">
-                        <a class="nav-link text-dark relative" asp-area="" asp-controller="Promo" asp-action="Index">
-                            <i class="bi bi-tags"></i>
-                            <span class="absolute top-0 right-0 bg-red-700 rounded-full text-xs w-5 flex justify-center h-4 text-white translate-x-1/4">2</span>
-                        </a>
+                    <a class="nav-link text-dark relative" asp-area="" asp-controller="Promo" asp-action="Index">
+                    <i class="bi bi-tags"></i>
+                    <span class="absolute top-0 right-0 bg-red-700 rounded-full text-xs w-5 flex justify-center h-4 text-white translate-x-1/4">2</span>
+                    </a>
                     </li>
+                    *@
                     <li class="nav-item">
-                        <button id="cart-btn" class="nav-link text-dark relative">
+                        <button id="cart-btn" disabled class="hidden nav-link text-dark relative">
                             <i class="bi bi-cart2"></i>
                             <span id="cart-count" style="display:none;" class="absolute top-0 right-0 bg-red-700 rounded-full text-xs w-5 flex justify-center h-4 text-white translate-x-1/4"></span>
                         </button>
@@ -40,14 +42,25 @@
     <script src="~/lib/jquery/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
+        $.extend({
+            getQueryParam: function (param) {
+                var urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(param);
+            }
+        });
+
         $(document).ready(function () {
             const cartId = localStorage.getItem("cartId")
             if (cartId) {
-                fetch(`/Menus/GetCart/${cartId}?branch=@ViewData["Branch"]`)
+                fetch(`/@ViewData["BranchSlug"]/Menus/GetCart/${cartId}`)
                     .then((res) => {
                         if (res.ok) {
                             res.json().then((data) => {
-                                $("#cart-count").text(data?.items.reduce((sum, item) => sum + item.quantity, 0) || "").show();
+                                const cartCount = data?.items.reduce((sum, item) => sum + item.quantity, 0) || 0
+                                if (cartCount > 0) {
+                                    $("#cart-count").text(cartCount).show();
+                                    $("#cart-btn").prop("disabled", false)
+                                }
                             });
                         }
                     });

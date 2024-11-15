@@ -8,10 +8,15 @@ namespace FRResto.Models
         [Key]
         public int Id { get; set; }
 
-        public int? RestaurantBranchId { get; set; }
+        [Required]
+        public int RestaurantBranchId { get; set; }
 
         [ForeignKey("RestaurantBranchId")]
-        public RestaurantBranch? RestaurantBranch { get; set; }
+        public RestaurantBranch RestaurantBranch { get; set; }
+
+        [Required]
+        [MaxLength(10)]
+        public string TableNumber { get; set; }
 
         public int? PromoId { get; set; }
 
@@ -30,18 +35,15 @@ namespace FRResto.Models
         [Phone]
         public string CustomerPhone { get; set; }
 
-        [EmailAddress]
-        public string? CustomerEmail { get; set; }
-
         [Required]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal SubTotal { get; set; }
+        public decimal Subtotal { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal DiscountPromo { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal DiscountItem { get; set; }
+        public decimal DiscountItems { get; set; }
 
         [Required]
         [Column(TypeName = "decimal(18,2)")]
