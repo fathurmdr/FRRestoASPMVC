@@ -5,14 +5,12 @@
     ViewData["BranchSlug"] = Model.Slug;
 }
 
-<div class="">
-    <div class="fixed top-0 left-0 h-dvh w-dvh flex justify-center">
-        <div class="relative w-full h-full max-w-xl">
-            <img src="~/img/bg-home.webp" class="w-full h-full object-cover" />
-            <div class="absolute text-primary font-semibold bottom-0 w-full max-w-xl mx-auto p-6 flex justify-center gap-6">
-                <a asp-area="" asp-controller="Menus" asp-action="Index" asp-route-branch="@Model.Slug" class="p-3 bg-white w-full rounded-lg shadow-md flex items-center gap-3"><i class="bi bi-journal-text text-lg"></i>Menus</a>
-                <a asp-area="" asp-controller="ScanTable" asp-action="Index" class="p-3 bg-white w-full rounded-lg shadow-md flex items-center gap-3"><i class="bi bi-qr-code-scan text-lg"></i>Scan Table</a>
-            </div>
+<div class="fixed bottom-0 left-0 h-screen w-screen flex justify-center">
+    <div class="relative w-full h-full max-w-xl">
+        <img src="~/img/bg-home.webp" class="w-full h-full object-cover" />
+        <div class="absolute text-primary font-semibold bottom-0 w-full max-w-xl mx-auto pb-12 px-8 flex justify-center gap-6">
+            <a asp-area="" asp-controller="Menus" asp-action="Index" asp-route-branch="@Model.Slug" class="p-3 bg-white w-full rounded-lg shadow-md flex items-center gap-3"><i class="bi bi-journal-text text-lg"></i>Menus</a>
+            <a asp-area="" asp-controller="ScanTable" asp-action="Index" class="p-3 bg-white w-full rounded-lg shadow-md flex items-center gap-3"><i class="bi bi-qr-code-scan text-lg"></i>Scan Table</a>
         </div>
     </div>
 </div>

@@ -11,13 +11,11 @@ namespace FRResto.Helpers
 
             if (lastOrder != null && !string.IsNullOrEmpty(lastOrder.Number))
             {
-                // Ekstrak nomor dari format "ODR00000001" dan tambahkan 1
-                var lastNumber = lastOrder.Number.Substring(3); // "00000001"
+                var lastNumber = lastOrder.Number.Substring(6);
                 newOrderNumber = int.Parse(lastNumber) + 1;
             }
 
-            // Format menjadi "ODR" + angka dengan 10 karakter (7 karakter angka)
-            return $"ODR{restaurantBranchId.ToString("D3")}{newOrderNumber.ToString("D5")}";
+            return $"ODR{restaurantBranchId.ToString("D3")}{newOrderNumber.ToString("D6")}";
         }
     }
 }
