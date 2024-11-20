@@ -25,6 +25,8 @@ namespace FRResto.Models
 
         public string? Role { get; set; }
 
+        public bool? SuperAdmin { get; set; }
+
         public int? RestaurantId { get; set; }
 
         [ForeignKey("RestaurantId")]

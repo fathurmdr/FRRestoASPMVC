@@ -22,6 +22,9 @@ namespace FRResto.Models
                     {
                         Name = "FR Resto",
                         Description = "FR Restaurant",
+                        Slug = "FRResto",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
 
                         Users = new List<User> {
                             new User
@@ -43,6 +46,8 @@ namespace FRResto.Models
                                 Name = "FR Resto",
                                 Slug = "FRResto",
                                 Description = "FR Restaurant",
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow,
 
                                 Menus = new List<Menu> {
                                     new Menu

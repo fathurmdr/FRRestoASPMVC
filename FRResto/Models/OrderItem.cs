@@ -21,8 +21,7 @@ namespace FRResto.Models
         [Required]
         public string MenuName { get; set; }
 
-        [Required]
-        public string MenuDescription { get; set; }
+        public string? MenuDescription { get; set; }
 
         [Required]
         public string MenuImage { get; set; }
